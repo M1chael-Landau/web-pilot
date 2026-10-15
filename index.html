@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Пилот PWA</title>
+  <meta name="description" content="Минимальная PWA для проверки бесплатного хостинга.">
+  <meta name="theme-color" content="#3b82f6">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <style>
+    :root {
+      --bg: #f6f7f9;
+      --card: #ffffff;
+      --text: #16181d;
+      --muted: #5b616e;
+      --border: #e3e6eb;
+      --accent: #3b82f6;
+      --accent-text: #ffffff;
+      --shadow: 0 1px 2px rgba(16,20,30,.06), 0 8px 24px rgba(16,20,30,.08);
+    }
+    [data-theme="dark"] {
+      --bg: #0e1015;
+      --card: #161a21;
+      --text: #eef1f6;
+      --muted: #9aa2b1;
+      --border: #262b35;
+      --accent: #60a5fa;
+      --accent-text: #0e1015;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.5);
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      min-height: 100dvh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background: var(--bg);
+      color: var(--text);
+      font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      transition: background .2s ease, color .2s ease;
+    }
+    .card {
+      width: 100%;
+      max-width: 420px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 28px 24px;
+      box-shadow: var(--shadow);
+    }
+    .logo {
+      width: 64px;
+      height: 64px;
+      display: block;
+      margin: 0 0 18px;
+      border-radius: 16px;
+    }
+    h1 {
+      font-size: 1.5rem;
+      line-height: 1.25;
+      margin: 0 0 6px;
+      letter-spacing: -0.01em;
+    }
+    p.sub {
+      margin: 0 0 22px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+    .row { display: flex; gap: 10px; flex-wrap: wrap; }
+    button {
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--text);
+      padding: 12px 16px;
+      transition: transform .06s ease, background .15s ease, border-color .15s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+    button:active { transform: scale(.97); }
+    button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    #counter {
+      flex: 1 1 auto;
+      min-width: 180px;
+      background: var(--accent);
+      color: var(--accent-text);
+      border-color: transparent;
+    }
+    #counter:hover { filter: brightness(1.05); }
+    #theme { flex: 0 0 auto; }
+    .hint {
+      margin: 22px 0 0;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+    .live {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 0.8rem;
+      margin-top: 14px;
+    }
+    .dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: #22c55e;
+      box-shadow: 0 0 0 3px rgba(34,197,94,.18);
+    }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <img class="logo" src="icon.svg" alt="Логотип пилота" width="64" height="64">
+    <h1>Пилот: всё работает</h1>
+    <p class="sub">Статическая PWA на бесплатном GitHub Pages.</p>
+
+    <div class="row">
+      <button id="counter" type="button" aria-live="polite">Нажатий: 0</button>
+      <button id="theme" type="button" aria-pressed="false">Тема: светлая</button>
+    </div>
+
+    <p class="hint">Это PWA — можно добавить на главный экран.</p>
+    <span class="live"><span class="dot" aria-hidden="true"></span> JavaScript активен</span>
+  </main>
+
+  <script>
+    (function () {
+      var root = document.documentElement;
+
+      // --- theme ---
+      var themeBtn = document.getElementById('theme');
+      function applyTheme(t) {
+        root.setAttribute('data-theme', t);
+        var dark = t === 'dark';
+        themeBtn.textContent = 'Тема: ' + (dark ? 'тёмная' : 'светлая');
+        themeBtn.setAttribute('aria-pressed', String(dark));
+        var meta = document.querySelector('meta[name="theme-color"]');
+        if (meta) meta.setAttribute('content', dark ? '#0e1015' : '#3b82f6');
+      }
+      var saved = null;
+      try { saved = localStorage.getItem('theme'); } catch (e) {}
+      var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      applyTheme(saved || (prefersDark ? 'dark' : 'light'));
+      themeBtn.addEventListener('click', function () {
+        var next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        applyTheme(next);
+        try { localStorage.setItem('theme', next); } catch (e) {}
+      });
+
+      // --- counter ---
+      var counterBtn = document.getElementById('counter');
+      var count = 0;
+      try { count = parseInt(localStorage.getItem('count') || '0', 10) || 0; } catch (e) {}
+      function renderCount() { counterBtn.textContent = 'Нажатий: ' + count; }
+      renderCount();
+      counterBtn.addEventListener('click', function () {
+        count += 1;
+        renderCount();
+        try { localStorage.setItem('count', String(count)); } catch (e) {}
+      });
+
+      // --- service worker ---
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function () {
+          navigator.serviceWorker.register('sw.js').catch(function () {});
+        });
+      }
+    })();
+  </script>
+</body>
+</html>
