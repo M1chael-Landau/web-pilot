@@ -133,6 +133,26 @@
 
   <script>
     (function () {
+      // --- analytics (Umami, guarded) ---
+      // Paste your Umami website-id between the quotes below to switch analytics on.
+      // While it stays empty: no script is injected, no network calls are made,
+      // and nothing is logged to the console.
+      const UMAMI_WEBSITE_ID = "bfc67b6e-19d2-4ede-9f9e-3da89734b764";
+
+      function track(name, data) {
+        if (window.umami && typeof window.umami.track === 'function') {
+          window.umami.track(name, data);
+        }
+      }
+
+      if (typeof UMAMI_WEBSITE_ID === 'string' && UMAMI_WEBSITE_ID.length > 0) {
+        var umamiScript = document.createElement('script');
+        umamiScript.defer = true;
+        umamiScript.src = 'https://cloud.umami.is/script.js';
+        umamiScript.setAttribute('data-website-id', UMAMI_WEBSITE_ID);
+        document.head.appendChild(umamiScript);
+      }
+
       var root = document.documentElement;
 
       // --- theme ---
@@ -152,6 +172,7 @@
       themeBtn.addEventListener('click', function () {
         var next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
         applyTheme(next);
+        track('theme-toggle', { theme: next });
         try { localStorage.setItem('theme', next); } catch (e) {}
       });
 
@@ -164,6 +185,7 @@
       counterBtn.addEventListener('click', function () {
         count += 1;
         renderCount();
+        track('counter-click');
         try { localStorage.setItem('count', String(count)); } catch (e) {}
       });
 
